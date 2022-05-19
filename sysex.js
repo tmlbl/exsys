@@ -67,19 +67,23 @@ class Keyboard {
         notes.forEach((note) => {        
             const key = document.createElement('button')
             key.innerHTML = note[0]
-            key.onclick = this.sendNote.bind(this, 1, note[1])
+            key.onmousedown = this.sendNoteOn.bind(this, 1, note[1])
+            key.onmouseup = this.sendNoteOff.bind(this, 1, note[1])
             container.appendChild(key)
         })
 
         return container
     }
 
-    sendNote(channel, note) {
+    sendNoteOn(channel, note) {
         console.log('sending note', note, 'to', this.output.name, 'channel', channel)
         const noteOnMessage = [0x90 + channel - 1, note, 0x7f]
-        const noteOffMessage = [0x80 + channel - 1, note, 0x40]
         this.output.send(noteOnMessage)
-        this.output.send(noteOffMessage, window.performance.now() + 1000.0)
+    }
+
+    sendNoteOff(channel, note) {
+        const noteOffMessage = [0x80 + channel - 1, note, 0x40]
+        this.output.send(noteOffMessage)
     }
 }
 
