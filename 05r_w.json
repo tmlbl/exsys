@@ -1,0 +1,18 @@
+{
+    "controls": [
+        {
+            "type": "button",
+            "label": "Write Program",
+            "actions": [
+                {
+                    "type": "send_message",
+                    "message": [ "0xF0", "0x42", "0x31", "0x36", "0x11", "0x00", "0xF7" ]
+                }
+            ]
+        },
+        {
+            "type": "button",
+            "label": "Foo"
+        }
+    ]
+}
