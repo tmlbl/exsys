@@ -23,6 +23,16 @@ class Editor {
 
         root.appendChild(this.renderControls())
 
+        Object.keys(params).forEach(name => {
+            root.appendChild(new Slider(name, val => {
+                this.selectedOutput.send(setParamMessage(0, params[name], val))
+            }).render())
+        })
+
+        root.appendChild(new Slider('Osc 1 Sound', val => {
+            const msg = sysex(0, sysexFunctions.PARAMETER_CHANGE, )
+        }))
+
         // Keyboard
         root.appendChild(this.keyboard.render())
     }
@@ -46,6 +56,7 @@ class Editor {
         this.selectedOutput = this.access.outputs.get(id)
         this.keyboard.output = this.selectedOutput
         console.log('selected ouput', this.selectedOutput)
+        window.selectedOutput = this.selectedOutput
     }
 }
 
@@ -56,6 +67,67 @@ const notes = [
     [ 'Eb', 63 ],
     [ 'E', 64 ],
 ]
+
+const params = {
+    'Cutoff Mod Depth': 0x02,
+    'Release Time': 0x48,
+    'Attack Time': 0x49,
+    'Brightness': 0x4A,
+}
+
+function setParamMessage(channel, param, value) {
+    return [ 0xB0 + channel, param, value ]
+}
+
+const sysexFunctions = {
+    PARAMETER_CHANGE: 0x41
+}
+
+const programParameters = {
+    'Osc 1 Sound': 12,
+}
+
+const SYSEX_BEGIN = 0xF0
+const KORG_ID = 0x42
+const FORMAT_ID = (globalChannel) => 0x30 + globalChannel
+const DEVICE_ID = 0x36
+const SYSEX_END = 0xF7
+
+// Generate sysex message
+function sysexHeader(channel) {
+    return [ SYSEX_BEGIN, KORG_ID, FORMAT_ID(channel), DEVICE_ID ]
+}
+
+// function parameterChange(channel, param, )
+
+class Slider {
+    constructor(name, apply) {
+        this.name = name
+        this.apply = apply
+    }
+
+    render() {
+        const label = document.createElement('p')
+        label.innerHTML = this.name
+        const slider = document.createElement('input')
+        slider.type = 'range'
+        slider.min = '0'
+        slider.max = '127'
+        slider.value = '0'
+
+        slider.onchange = this.onChange.bind(this)
+
+        const container = document.createElement('div')
+        container.appendChild(label)
+        container.appendChild(slider)
+        return container
+    }
+
+    onChange(e) {
+        console.log(e.target.value)
+        this.apply(e.target.value)
+    }
+}
 
 class Keyboard {
     constructor(output) {
@@ -106,9 +178,12 @@ class Button {
                 console.log(act['message'])
                 // const msg = act['message'].map(parseInt)
                 // console.log(msg)
+                const bytes = []
                 for (const b of act['message']) {
-                    console.log(b, parseInt(b))
+                    bytes.push(parseInt(b))
                 }
+                console.log(bytes)
+                window.selectedOutput.send(bytes)
             }
         })
     }
